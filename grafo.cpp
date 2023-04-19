@@ -1,66 +1,126 @@
 #include "grafo.h"
+#include "arco.h"
 
-#include<cassert>
-#include<iostream>
-#include<bits/stdc++.h>
-#include<vector>
-#include<utility>
-#include "nodo.h"
+#include <list>
+#include <set>
+#include <map>
+#include <queue>
+#include <vector>
+#include <utility>
 
-grafo::grafo(){
-    cardinal = 0;
+//hacer los typedef para los mapas y los iteradores
+
+//cambiar los auto x esto segun corresponda
+//typedef typename std::map<int, std::map<int, C> >::iterator itA
+//typedef typename std::map<int, std::map<int, C> >::const_iterator itAConst
+//typedef typename std::map<int, C>::iterator itB
+//typedef typename std::map<int, C>::iterator itBConst
+
+template <typename C> grafo<C>::grafo(){
+    this->privCardinal = 0;
 }
 
-grafo::~grafo(){
-    //dtor
+//template <typename C> grafo<C>::grafo(const grafo & otrografo){}
+
+template <typename C> grafo<C>::~grafo(){}
+
+template <typename C> grafo<C> & grafo<C>::operator = (const grafo & otrografo){
+    //implementar
+    return *this;
 }
 
-bool grafo::aggVert(){
-    std::set<std::pair<int,int>> vacio;
-    nodo nuevo(this->cardinal+1);
-    this->vertices.push_back(nuevo);
-    this->ady.push_back(vacio);
-    this->cardinal++;
-    return true;
+template <typename C> bool grafo<C>::vacio() const{
+    return this->privCardinal == 0; //no lo verifica realmente pero no debria dar problema
+    //en cualquier caso hacer
+    //return this->ady.begin() == this->ady.end();
 }
 
-bool grafo::aggVertRotulado(std::string rotulo){
-    std::set<std::pair<int,int>> vacio;
-    nodo nuevo(this->cardinal+1, rotulo);
-    this->vertices.push_back(nuevo);
-    this->ady.push_back(vacio);
-    this->cardinal++;
-    return true;
+template <typename C> int grafo<C>::cardinal() const{
+    return this->privCardinal;
 }
 
-bool grafo::aggArcoCosto(int n1, int n2, int costo){ //arco simple con costo
-    if(n1 > this->cardinal || n2 > this->cardinal) return false;
-    this->ady[n1].insert(std::pair<int,int>(costo,n2));
-    return true;
+template <typename C> bool grafo<C>::existeVertice(int vertice) const{
+    return (this->ady.find(vertice) != this->ady.end());
 }
 
-bool grafo::aggArco(int n1, int n2){ //arco simple sin costo
-    return aggArcoCosto(n1,n2,0);
+template <typename C> bool grafo<C>::existeArco(int origen, int destino) const{
+    auto it = this->ady.find(origen);
+    if ((it != this->ady.end()) && (it->second.find(destino) != it->second.end())) return true;
+    return false;
 }
 
-bool grafo::aggArcoDoble(int n1, int n2){ //arco ida y vuelta sin costo
-    return (aggArco(n1,n2) && aggArco(n1,n2));
+template <typename C> const C & grafo<C>::costoArco(int origen, int destino) const{
+    C vacio;
+    auto it = this->ady.find(origen);
+    /*
+    assert(((it != this->ady.end()) && (it->second.find(destino) != it->second.end()))
+    && "Se accedió al costo de un arco que no existe - de: clase Grafo - Función costoArco");
+    return it->second.at(destino);
+    */
+    if((it != this->ady.end()) && (it->second.find(destino) != it->second.end())) return it->second.at(destino);
+    return vacio; //esto medio raro
 }
 
-bool grafo::aggArcoDobleCosto(int n1, int n2, int costo){ //arco doble con costo
-    return (aggArcoCosto(n1,n2,costo) && aggArcoCosto(n2,n1,costo));
+template <typename C> void grafo<C>::listarVertices(std::list<int> & vertices) const{
+    auto it = this->ady.begin();
+    while(it != this->ady.end()){
+        vertices.push_back(it->first);
+        it++;
+    }
 }
 
-std::set<std::pair<int,int>> grafo::adyacentes(int n){
-    assert(n<=this->cardinal);
-    return this->ady[n-1];
+template <typename C> void grafo<C>::adyacentesA(int origen,std::list<arco<C>> & adyacentes) const{
+    auto it = this->ady.find(origen);
+    if(it != this->ady.end()){
+        auto it2 = it->second.begin();
+        while(it2 != it->second.end()){
+            adyacentes.push_back(arco<int>(it2->first,it2->second));
+            it2++;
+        }
+    }
 }
 
-int grafo::cantVert() const{
-    return this->cardinal;
+template <typename C> void grafo<C>::aggVertice(int vertice){
+    if(!existeVertice(vertice)){
+        std::map<int, C> vacio;
+        this->ady.insert(std::make_pair(vertice,vacio));
+        this->privCardinal++;
+    }
 }
 
-nodo grafo::getNodo(int n) const{
-    assert(n<=this->cardinal);
-    return this->vertices[n-1]; //n-1 ya que indexa en 0 el primero
+template <typename C> void grafo<C>::elimVertice(int vertice){
+    if(existeVertice(vertice)){
+        this->ady.erase(vertice);
+        auto it = this->ady.begin();
+        while(it != this->ady.end()){ //el it recorre todos los vertices
+            it->second.erase(vertice); //en cada vertice elimina lso arcos con vertAEliminar
+            it++;
+        }
+        this->privCardinal--;
+    }
 }
+
+template <typename C> void grafo<C>::modCosto(int origen, int destino, const C & costo){
+    auto it = this->ady.find(origen);
+    if ((it != this->ady.end()) && (it->second.find(destino) != it->second.end()))
+        this->ady[origen][destino] = costo;
+}
+
+template <typename C> void grafo<C>::aggArco(int origen, int destino, const C & costo){
+    if(existeVertice(origen) && existeVertice(destino))
+        this->ady[origen][destino] = costo;
+}
+
+template <typename C> void grafo<C>::elimArco(int origen, int destino){
+    if(existeVertice(origen) && existeVertice(destino)){
+        auto it = this->ady.find(origen);
+        it->second.erase(destino);
+    }
+}
+
+template <typename C> void grafo<C>::vaciar(){
+    this->ady.clear();
+    this->privCardinal = 0;
+}
+
+template class grafo<int>;
