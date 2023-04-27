@@ -22,7 +22,7 @@ bool existeCaminoDfs(grafo<int> & g,int origen,int destino,std::list<int> & cami
     while(it != ady.end()){
         siguiente = it->adyacente();
         if(visitados.find(siguiente) == visitados.end()){ //si el sig no está visitado recorro
-            if(existeCaminoDfs(g,siguiente,destino,camino,visitados,colores)){ //asi devuelve TODOS los caminos, como estaba antes con el pop_back en el recursivo p afuera devolvia uno solo
+            if(existeCaminoDfs(g,siguiente,destino,camino,visitados,colores)){ 
                 camino.push_front(origen);
                 return true;
             }
