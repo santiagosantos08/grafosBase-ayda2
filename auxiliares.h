@@ -1,6 +1,7 @@
 #ifndef AUXILIARES_H
 #define AUXILIARES_H
 #include "grafo.h"
+#include "arco.h"
 #include <map>
 
 const int rojo = -1;
@@ -8,9 +9,9 @@ const int blanco = 0;
 
 void printLista(std::list<int> & camino){
 	auto it = camino.begin();
-	std::cout<<"Camino:";
+	std::cout<<"   |   Camino:";
 	while(it != camino.end()){
-		std::cout<<" -> "<<*it;
+        std::cout<<" -> "<<*it;
 		it++;
 	}
 	std::cout<<" "<<std::endl;
@@ -23,18 +24,33 @@ void cargarVertices(grafo<int> & g,int base,int tope){
 }
 
 void cargarColores(std::map<int,int> & c){
+    //se usa un mapa en lugar de un vector ya que puede hacer vertices con numeros random, no son por orden
+    //ej se puede saltar al vertice 5 al 10 si se quiere entoneces al acceder al vector con[]
+    //el vertice "6" seria enr ealidad el 10, con el mapa solucionas eso
     c[1]=blanco;
     c[2]=blanco;
     c[3]=blanco;
     c[4]=blanco;
     c[5]=blanco;
-    c[6]=rojo;
+    c[6]=blanco;
     c[7]=blanco;
     c[8]=blanco;
     c[9]=blanco;
     c[10]=blanco;
     c[11]=blanco;
     c[12]=blanco;
+    c[13]=blanco;
+}
+
+void aislarVertice(int vert,std::map<int,int> & c,grafo<int> & g){
+    std::list<arco<int>> ady;
+    g.adyacentesA(vert,ady);
+    auto it = ady.begin();
+    while(it != ady.end()){
+        c[it->adyacente()] = rojo;
+        it++;
+    }
+
 }
 
 void cargarArcos(grafo<int> & g){
