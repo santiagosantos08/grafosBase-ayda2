@@ -3,7 +3,7 @@
 #include <set>
 #include <map>
 #include "Grafo.h"
-|
+
 const int rojo = 1;
 const int blanco = 0;
 void printLista(std::list<int> & camino);
